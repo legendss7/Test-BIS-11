@@ -1,227 +1,289 @@
+# ================================================================
+# Escala de Impulsividad - Estilo BIS-11 (Versión Adaptada, 30 ítems)
+# Estructura tipo Test Big Five (autoavance + vista resultados)
+# ================================================================
+
 import streamlit as st
 import numpy as np
 from datetime import datetime
 
-# ================================================================
-# Escala de Impulsividad Conductual (BIS-50 Adaptada)
-# Inspirada en la lógica del BIS-11 (Atencional / Motora / No Planificada)
-# Ítems originales (no son BIS-11 oficial, sin copyright)
-# Autoavance + resultado profesional
-# ================================================================
-
 # ---------------------------------------------------------------
-# Config general
+# Configuración general
 # ---------------------------------------------------------------
 st.set_page_config(
-    page_title="Escala de Impulsividad | BIS-50 Adaptada",
+    page_title="Escala de Impulsividad | BIS-11 Adaptada",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # ---------------------------------------------------------------
-# Estilos (heredando la lógica visual del Big Five PRO)
+# Estilos base (inspirados en tu app Big Five)
 # ---------------------------------------------------------------
-st.markdown("""
+st.markdown(
+    """
 <style>
-[data-testid="stSidebar"] { display:none !important; }
+[data-testid="stSidebar"] { display: none !important; }
 
-html, body, [data-testid="stAppViewContainer"]{
-  background:#ffffff !important; color:#111 !important;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+html, body, [data-testid="stAppViewContainer"] {
+  background: #ffffff !important;
+  color: #111111 !important;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text",
+               -system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Helvetica, Arial, sans-serif;
 }
-.block-container{ max-width:1200px; padding-top:0.8rem; padding-bottom:2rem; }
 
-.card{
-  border:1px solid #eee; border-radius:14px; background:#fff;
-  box-shadow:0 2px 0 rgba(0,0,0,0.03); padding:18px;
+.block-container {
+  max-width: 1100px;
+  padding-top: 0.8rem;
+  padding-bottom: 2rem;
 }
-.kpi-grid{
-  display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap:12px; margin:10px 0 6px 0;
-}
-.kpi{
-  border:1px solid #eee; border-radius:14px; background:#fff; padding:16px;
-  position:relative; overflow:hidden;
-}
-.kpi .label{ font-size:.95rem; opacity:.85; }
-.kpi .value{ font-size:2.2rem; font-weight:900; line-height:1; }
 
-.dim-title{
-  font-size:clamp(2.2rem, 5vw, 3.2rem);
-  font-weight:900; letter-spacing:.2px; line-height:1.12;
-  margin:.2rem 0 .6rem 0;
+/* Tarjetas */
+.card {
+  border: 1px solid #eee;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(15,23,42,0.04);
+  padding: 18px 18px 16px 18px;
+  margin-bottom: 12px;
 }
-.dim-desc{ margin:.1rem 0 1rem 0; opacity:.9; }
 
-.small{ font-size:0.95rem; opacity:.9; }
-
-.badge{
-  display:inline-flex; align-items:center; gap:6px; padding:.25rem .55rem; font-size:.82rem;
-  border-radius:999px; border:1px solid #eaeaea; background:#fafafa;
+.dim-title {
+  font-size: clamp(2.0rem, 3.2vw, 2.6rem);
+  font-weight: 900;
+  margin: 0.2rem 0 0.2rem 0;
 }
-hr{ border:none; border-top:1px solid #eee; margin:16px 0; }
+
+.dim-subtitle {
+  font-size: 0.98rem;
+  opacity: 0.9;
+  margin-bottom: 0.6rem;
+}
+
+.small {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.kpi {
+  border-radius: 14px;
+  border: 1px solid #eee;
+  padding: 12px 14px;
+  background: #fafafa;
+}
+
+.kpi-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.78rem;
+  border-radius: 999px;
+  border: 1px solid #e5e5e5;
+  background: #f9f9f9;
+}
+
+.result-section {
+  border-radius: 12px;
+  border: 1px solid #eee;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: #ffffff;
+}
 </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
 # ---------------------------------------------------------------
-# Definición de subescalas e ítems (BIS-50 Adaptada)
+# Definición de dimensiones y preguntas (30 ítems)
+# Lógica BIS-11: Atencional, Motora, No planificada
+# Ítems originales, NO BIS-11 oficial.
 # ---------------------------------------------------------------
 
-SUBESCALAS = {
-    "Atencional": "Dificultad para sostener la atención, distracción cognitiva.",
-    "Motora": "Tendencia a actuar sin pensar, responder de forma impulsiva.",
-    "No planificada": "Escasa planificación, priorizar el presente sobre el futuro."
+DIMENSIONES = {
+    "Atencional": "Dificultad para mantener foco, distracción cognitiva, salto de ideas.",
+    "Motora": "Actuar sin pensar, respuestas impulsivas, dificultad para frenar conductas.",
+    "No planificada": "Baja planificación, decisiones apresuradas, foco en el corto plazo."
 }
 
-# 50 ítems originales, agrupados según lógica BIS (no son BIS-11 oficial)
-BIS_ITEMS = [
-    # Atencional (1–18)
-    {"id": 1, "texto": "Me cuesta mantener la atención cuando una actividad se vuelve monótona.", "subescala": "Atencional"},
-    {"id": 2, "texto": "Cambio de tema en mi mente aun cuando la otra persona sigue hablando.", "subescala": "Atencional"},
-    {"id": 3, "texto": "Me distraigo fácilmente con ruidos o movimientos a mi alrededor.", "subescala": "Atencional"},
-    {"id": 4, "texto": "Me es difícil terminar una tarea sin revisar el celular u otras cosas.", "subescala": "Atencional"},
-    {"id": 5, "texto": "Pierdo el hilo de lo que estoy haciendo con más frecuencia que otras personas.", "subescala": "Atencional"},
-    {"id": 6, "texto": "Me resulta complicado concentrarme cuando tengo muchas ideas a la vez.", "subescala": "Atencional"},
-    {"id": 7, "texto": "Cuando leo, avanzo páginas sin recordar bien lo que acabo de leer.", "subescala": "Atencional"},
-    {"id": 8, "texto": "Me inquieta tener que escuchar explicaciones largas o muy detalladas.", "subescala": "Atencional"},
-    {"id": 9, "texto": "Suelo desconectarme mentalmente en conversaciones extensas.", "subescala": "Atencional"},
-    {"id": 10, "texto": "Me aburro con rapidez si la actividad requiere mucha paciencia.", "subescala": "Atencional"},
-    {"id": 11, "texto": "Puedo mantener el enfoque en una tarea importante sin distraerme.", "subescala": "Atencional"},  # R
-    {"id": 12, "texto": "Me organizo bien para no perder tiempo en cosas irrelevantes.", "subescala": "Atencional"},  # R
-    {"id": 13, "texto": "Cuando decido concentrarme, lo logro sin mayores problemas.", "subescala": "Atencional"},  # R
-    {"id": 14, "texto": "Me cuesta seguir instrucciones largas sin confundirme.", "subescala": "Atencional"},
-    {"id": 15, "texto": "Paso de una idea a otra sin desarrollar ninguna por completo.", "subescala": "Atencional"},
-    {"id": 16, "texto": "Me es difícil escuchar hasta el final antes de responder.", "subescala": "Atencional"},
-    {"id": 17, "texto": "Cuando trabajo, mi mente se mantiene clara y ordenada.", "subescala": "Atencional"},  # R
-    {"id": 18, "texto": "Me distraen mis propios pensamientos incluso en situaciones importantes.", "subescala": "Atencional"},
+# Cada pregunta:
+# - text: enunciado
+# - dim: subescala
+# - key: identificador
+# - rev: True si es ítem invertido (se recodifica 5 - respuesta)
+QUESTIONS = [
+    # Atencional (10)
+    {"text": "Me cuesta mantener mi atención cuando una actividad se vuelve monótona.", "dim": "Atencional", "key": "A1", "rev": False},
+    {"text": "Me distraigo con facilidad por ruidos o estímulos externos.", "dim": "Atencional", "key": "A2", "rev": False},
+    {"text": "Pierdo el hilo de lo que hago con más frecuencia que otras personas.", "dim": "Atencional", "key": "A3", "rev": False},
+    {"text": "Cuando leo o escucho, mi mente se va a otros temas.", "dim": "Atencional", "key": "A4", "rev": False},
+    {"text": "Puedo concentrarme bien cuando la tarea es importante para mí.", "dim": "Atencional", "key": "A5", "rev": True},
+    {"text": "Me organizo para minimizar distracciones cuando necesito enfocarme.", "dim": "Atencional", "key": "A6", "rev": True},
+    {"text": "Las instrucciones largas me confunden o las olvido con facilidad.", "dim": "Atencional", "key": "A7", "rev": False},
+    {"text": "Cambio de una idea a otra sin terminar de desarrollar ninguna.", "dim": "Atencional", "key": "A8", "rev": False},
+    {"text": "Suelo interrumpir mentalmente una explicación porque me aburro.", "dim": "Atencional", "key": "A9", "rev": False},
+    {"text": "Mantengo mi mente clara y ordenada al trabajar.", "dim": "Atencional", "key": "A10", "rev": True},
 
-    # Motora (19–34)
-    {"id": 19, "texto": "Actúo rápidamente sin pensar en las consecuencias.", "subescala": "Motora"},
-    {"id": 20, "texto": "Digo lo primero que se me viene a la mente, incluso si puede molestar.", "subescala": "Motora"},
-    {"id": 21, "texto": "A veces reacciono impulsivamente y luego me arrepiento.", "subescala": "Motora"},
-    {"id": 22, "texto": "Me cuesta esperar mi turno sin intervenir.", "subescala": "Motora"},
-    {"id": 23, "texto": "Tomo decisiones apresuradas en situaciones cotidianas.", "subescala": "Motora"},
-    {"id": 24, "texto": "Hago compras o gastos sin haberlos planeado.", "subescala": "Motora"},
-    {"id": 25, "texto": "Me resulta difícil quedarme quieto cuando algo me incomoda.", "subescala": "Motora"},
-    {"id": 26, "texto": "Cambio de actividad sin terminar la anterior.", "subescala": "Motora"},
-    {"id": 27, "texto": "Me involucro en situaciones solo por impulso del momento.", "subescala": "Motora"},
-    {"id": 28, "texto": "Me dejo llevar por la emoción del momento al actuar.", "subescala": "Motora"},
-    {"id": 29, "texto": "Antes de actuar en algo importante, siempre lo pienso con calma.", "subescala": "Motora"},  # R
-    {"id": 30, "texto": "Prefiero analizar bien una situación antes de responder.", "subescala": "Motora"},  # R
-    {"id": 31, "texto": "Suelo contenerme antes de decir algo cuando estoy enojado/a.", "subescala": "Motora"},  # R
-    {"id": 32, "texto": "Rara vez hago algo solo por impulso.", "subescala": "Motora"},  # R
-    {"id": 33, "texto": "Me cuesta controlar la urgencia de hacer algo de inmediato.", "subescala": "Motora"},
-    {"id": 34, "texto": "Entro en proyectos o actividades sin evaluar si tengo tiempo o recursos.", "subescala": "Motora"},
+    # Motora (10)
+    {"text": "Actúo rápidamente sin pensar en las consecuencias.", "dim": "Motora", "key": "M1", "rev": False},
+    {"text": "Digo lo primero que pienso aunque pueda generar conflicto.", "dim": "Motora", "key": "M2", "rev": False},
+    {"text": "Me cuesta esperar mi turno sin intervenir.", "dim": "Motora", "key": "M3", "rev": False},
+    {"text": "Hago compras o decisiones impulsivas sin planearlas.", "dim": "Motora", "key": "M4", "rev": False},
+    {"text": "Antes de actuar en algo relevante, me detengo a analizarlo.", "dim": "Motora", "key": "M5", "rev": True},
+    {"text": "Puedo contenerme cuando siento la necesidad de reaccionar de inmediato.", "dim": "Motora", "key": "M6", "rev": True},
+    {"text": "Cambio de actividad sin haber terminado la anterior.", "dim": "Motora", "key": "M7", "rev": False},
+    {"text": "Me involucro en situaciones solo por la emoción del momento.", "dim": "Motora", "key": "M8", "rev": False},
+    {"text": "Rara vez hago algo solo por impulso.", "dim": "Motora", "key": "M9", "rev": True},
+    {"text": "Suelo reaccionar primero y pensar después.", "dim": "Motora", "key": "M10", "rev": False},
 
-    # No planificada (35–50)
-    {"id": 35, "texto": "Prefiero disfrutar ahora y pensar después en las consecuencias.", "subescala": "No planificada"},
-    {"id": 36, "texto": "Planeo con detalle mis metas a mediano y largo plazo.", "subescala": "No planificada"},  # R
-    {"id": 37, "texto": "Me cuesta seguir un plan hasta el final.", "subescala": "No planificada"},
-    {"id": 38, "texto": "Suelo dejar decisiones importantes para último minuto.", "subescala": "No planificada"},
-    {"id": 39, "texto": "No acostumbro a evaluar bien los riesgos antes de comprometerme.", "subescala": "No planificada"},
-    {"id": 40, "texto": "Me resulta difícil mantener un hábito constante de ahorro.", "subescala": "No planificada"},
-    {"id": 41, "texto": "Siento que vivo más “al día” que con un plan claro.", "subescala": "No planificada"},
-    {"id": 42, "texto": "Organizo mi tiempo y recursos de forma responsable.", "subescala": "No planificada"},  # R
-    {"id": 43, "texto": "Cambio mis objetivos con frecuencia sin haber completado los anteriores.", "subescala": "No planificada"},
-    {"id": 44, "texto": "Tomo decisiones relevantes sin recopilar suficiente información.", "subescala": "No planificada"},
-    {"id": 45, "texto": "Prefiero la gratificación inmediata sobre los beneficios futuros.", "subescala": "No planificada"},
-    {"id": 46, "texto": "Antes de iniciar algo importante, ya tengo una estrategia definida.", "subescala": "No planificada"},  # R
-    {"id": 47, "texto": "Me cuesta mantener hábitos estables (estudio, ejercicio, proyectos personales).", "subescala": "No planificada"},
-    {"id": 48, "texto": "Siento que muchas cosas importantes las hago sin una planificación real.", "subescala": "No planificada"},
-    {"id": 49, "texto": "Me describiría como una persona ordenada y previsora.", "subescala": "No planificada"},  # R
-    {"id": 50, "texto": "A menudo asumo compromisos sin estar seguro/a de poder cumplirlos.", "subescala": "No planificada"},
+    # No planificada (10)
+    {"text": "Prefiero disfrutar ahora y pensar después en las consecuencias.", "dim": "No planificada", "key": "N1", "rev": False},
+    {"text": "Planifico mis metas a mediano y largo plazo.", "dim": "No planificada", "key": "N2", "rev": True},
+    {"text": "Me cuesta seguir un plan hasta el final.", "dim": "No planificada", "key": "N3", "rev": False},
+    {"text": "Tomo decisiones importantes sin evaluar suficiente información.", "dim": "No planificada", "key": "N4", "rev": False},
+    {"text": "Mantengo hábitos estables (ahorro, estudio, autocuidado).", "dim": "No planificada", "key": "N5", "rev": True},
+    {"text": "Suelo dejar asuntos importantes para último minuto.", "dim": "No planificada", "key": "N6", "rev": False},
+    {"text": "Cambio mis objetivos con frecuencia sin completarlos.", "dim": "No planificada", "key": "N7", "rev": False},
+    {"text": "Me describiría como ordenado/a y previsor/a.", "dim": "No planificada", "key": "N8", "rev": True},
+    {"text": "Asumo compromisos sin estar seguro/a de poder cumplirlos.", "dim": "No planificada", "key": "N9", "rev": False},
+    {"text": "Evalúo los riesgos antes de tomar decisiones importantes.", "dim": "No planificada", "key": "N10", "rev": True},
 ]
 
-# Ítems con puntuación invertida (1-4 => 5 - respuesta)
-INVERTIDOS = {11, 12, 13, 17, 29, 30, 31, 32, 36, 42, 46, 49}
+DIM_LIST = list(DIMENSIONES.keys())
+KEY2IDX = {q["key"]: i for i, q in enumerate(QUESTIONS)}
 
-# Escala Likert BIS-11 (adaptada): 1–4
-OPCIONES = {
-    "Rara vez / nunca": 1,
-    "A veces": 2,
-    "A menudo": 3,
-    "Siempre o casi siempre": 4,
+# Escala Likert 1–4
+LIK_LABELS = [
+    "1 - Rara vez / nunca",
+    "2 - A veces",
+    "3 - A menudo",
+    "4 - Casi siempre / siempre",
+]
+LIK_MAP = {
+    LIK_LABELS[0]: 1,
+    LIK_LABELS[1]: 2,
+    LIK_LABELS[2]: 3,
+    LIK_LABELS[3]: 4,
 }
-OPCIONES_LIST = list(OPCIONES.keys())
-
-# Mapeo ID → índice para autoavance
-ID2IDX = {item["id"]: idx for idx, item in enumerate(BIS_ITEMS)}
 
 # ---------------------------------------------------------------
-# Estado
+# Estado global
 # ---------------------------------------------------------------
 if "stage" not in st.session_state:
-    st.session_state.stage = "inicio"  # inicio | test | resultados
+    st.session_state.stage = "inicio"           # inicio | test | resultados
 if "q_idx" not in st.session_state:
     st.session_state.q_idx = 0
-if "respuestas" not in st.session_state:
-    st.session_state.respuestas = {item["id"]: None for item in BIS_ITEMS}
+if "answers" not in st.session_state:
+    st.session_state.answers = {q["key"]: None for q in QUESTIONS}
 if "fecha" not in st.session_state:
     st.session_state.fecha = None
 if "_needs_rerun" not in st.session_state:
     st.session_state._needs_rerun = False
 
 # ---------------------------------------------------------------
-# Funciones de cálculo
+# Utilidades
 # ---------------------------------------------------------------
-def recodificar(item_id, valor):
-    if item_id in INVERTIDOS:
-        return 5 - valor
-    return valor
+def recode(value: int, rev: bool) -> int:
+    if value is None:
+        return None
+    return (5 - value) if rev else value
 
-def calcular_puntajes():
-    total = 0
-    sub_suma = {s: 0 for s in SUBESCALAS.keys()}
-    sub_conteo = {s: 0 for s in SUBESCALAS.keys()}
+def compute_scores(answers: dict):
+    """
+    Devuelve:
+      - total_raw: suma total (30–120)
+      - dim_raw: dict dimensión -> suma cruda
+      - dim_norm: dict dimensión -> 0-100 normalizado
+    """
+    dim_values = {d: [] for d in DIM_LIST}
+    total_raw = 0
 
-    for item in BIS_ITEMS:
-        item_id = item["id"]
-        sub = item["subescala"]
-        v = st.session_state.respuestas.get(item_id)
+    for q in QUESTIONS:
+        v = answers.get(q["key"])
         if v is None:
             continue
-        v_rec = recodificar(item_id, v)
-        total += v_rec
-        sub_suma[sub] += v_rec
-        sub_conteo[sub] += 1
+        v_rec = recode(v, q["rev"])
+        total_raw += v_rec
+        dim_values[q["dim"]].append(v_rec)
 
-    sub_prom = {
-        s: (sub_suma[s] / sub_conteo[s]) if sub_conteo[s] > 0 else 0
-        for s in SUBESCALAS.keys()
-    }
+    dim_raw = {d: (sum(vals) if vals else 0) for d, vals in dim_values.items()}
+    dim_norm = {}
+    for d, vals in dim_values.items():
+        if not vals:
+            dim_norm[d] = 0.0
+            continue
+        # Normalización 0–100: mínimo = 1 * n, máximo = 4 * n
+        n = len(vals)
+        raw = sum(vals)
+        min_s = 1 * n
+        max_s = 4 * n
+        dim_norm[d] = (raw - min_s) / (max_s - min_s) * 100 if max_s > min_s else 0.0
 
-    return total, sub_suma, sub_prom
+    return total_raw, dim_raw, dim_norm
 
-def interpretar_total(total):
-    # Rango teórico BIS-50 adaptada: 50 (mínima impulsividad) a 200 (máxima)
-    if total < 90:
-        return "Perfil de impulsividad global **baja a moderada**. Indica buena autorregulación en la mayoría de los contextos."
-    elif 90 <= total < 130:
-        return "Perfil de impulsividad **moderada**. Puede manifestarse en ciertas situaciones; recomendable análisis profesional según contexto."
+def interpret_total(total_raw: int):
+    # Rango: 30 (mínima impulsividad) a 120 (máxima)
+    if total_raw < 60:
+        return "Impulsividad global **baja a moderada**. Indica buena autorregulación en la mayoría de los contextos."
+    elif 60 <= total_raw < 85:
+        return "Impulsividad global **moderada**. Puede impactar algunas decisiones; recomendable monitoreo según contexto personal o laboral."
     else:
-        return "Perfil de impulsividad **elevada**. Sugiere tendencia significativa a conductas impulsivas; se recomienda evaluación clínica especializada."
+        return "Impulsividad global **elevada**. Sugiere tendencia marcada a responder impulsivamente; se recomienda evaluación profesional detallada."
 
-def interpretar_subescala(nombre, puntaje, promedio):
-    # Interpretación simple basada en promedio 1–4:
-    if promedio < 1.8:
-        return f"En **{nombre}** se observa un nivel bajo de impulsividad; buena regulación en esta área."
-    elif 1.8 <= promedio < 2.6:
-        return f"En **{nombre}** se observa un nivel moderado de impulsividad; conviene monitorear según demandas del entorno."
+def interpret_dim(dim: str, raw: int, norm: float):
+    if norm < 35:
+        lvl = "baja"
+        txt = f"En {dim.lower()} se observa impulsividad baja; buena regulación en esta área."
+    elif 35 <= norm < 65:
+        lvl = "moderada"
+        txt = f"En {dim.lower()} se observa impulsividad moderada; conviene observar cómo influye en decisiones clave."
     else:
-        return f"En **{nombre}** se observa un nivel alto de impulsividad; puede requerir estrategias específicas de control y ajuste conductual."
+        lvl = "alta"
+        txt = f"En {dim.lower()} se observa impulsividad alta; puede requerir estrategias específicas de control y planificación."
+    return lvl, txt
 
 # ---------------------------------------------------------------
-# Callback autoavance
+# Callback: autoavance al responder
 # ---------------------------------------------------------------
-def on_answer_change(item_id: int):
-    # Respuesta ya guardada por el radio; avanzamos
-    idx = ID2IDX[item_id]
-    if idx < len(BIS_ITEMS) - 1:
+def on_answer_change(qkey: str):
+    # La radio ya guardó el valor en session_state; lo leemos
+    val_label = st.session_state.get(f"resp_{qkey}")
+    if val_label is None:
+        return
+    st.session_state.answers[qkey] = LIK_MAP[val_label]
+
+    # Calcular siguiente pregunta
+    idx = KEY2IDX[qkey]
+    if idx < len(QUESTIONS) - 1:
         st.session_state.q_idx = idx + 1
+        st.session_state.stage = "test"
     else:
+        # Última pregunta: ir a resultados
         st.session_state.stage = "resultados"
         st.session_state.fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+
     st.session_state._needs_rerun = True
 
 # ---------------------------------------------------------------
@@ -231,173 +293,177 @@ def view_inicio():
     st.markdown(
         """
         <div class="card">
-          <h1 style="margin:0 0 6px 0; font-size:clamp(2.2rem,3.6vw,3rem); font-weight:900;">
-            ⚡ Escala de Impulsividad Conductual (BIS-50 Adaptada)
-          </h1>
-          <p class="small" style="margin:4px 0 0 0;">
-            Versión profesional inspirada en la lógica del BIS-11 (Barratt), con tres dimensiones:
-            Atencional, Motora y No planificada. Uso orientativo para evaluación psicológica y laboral.
+          <h1 class="dim-title">⚡ Escala de Impulsividad — Modelo BIS-11 Adaptado</h1>
+          <p class="small">
+            Versión profesional de 30 ítems, con tres dimensiones: Impulsividad Atencional, Motora y No Planificada.
+            Basada en la lógica del BIS-11, con enunciados originales para uso ético y libre.
           </p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-    c1, c2 = st.columns([1.4, 1])
-    with c1:
+    col1, col2 = st.columns([1.5, 1])
+    with col1:
         st.markdown(
-            """
+            f"""
             <div class="card">
-              <h3 style="margin-top:0;">¿Qué mide esta escala?</h3>
-              <ul style="line-height:1.6;">
-                <li><b>Impulsividad Atencional:</b> Distracción, fuga de ideas, dificultad para sostener el foco.</li>
-                <li><b>Impulsividad Motora:</b> Actuar sin pensar, respuestas rápidas, conductas impulsivas.</li>
-                <li><b>Impulsividad No planificada:</b> Falta de planificación, decisiones apresuradas, vivir el presente.</li>
+              <h3>¿Qué mide?</h3>
+              <ul class="small">
+                <li><b>Atencional:</b> Distracción, dificultad para mantener el foco.</li>
+                <li><b>Motora:</b> Actuar sin pensar, reacciones rápidas.</li>
+                <li><b>No planificada:</b> Falta de planificación, decisiones apresuradas.</li>
               </ul>
               <p class="small">
-                50 ítems Likert (1–4) · Autoavance · Duración estimada: <b>8–10 minutos</b>.
+                Número de ítems: <b>{len(QUESTIONS)}</b><br>
+                Respuesta: escala Likert 1–4.<br>
+                Duración estimada: <b>5–7 minutos</b>.
               </p>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with c2:
+    with col2:
         st.markdown(
             """
             <div class="card">
-              <h3 style="margin-top:0;">Instrucciones</h3>
-              <ol style="line-height:1.6;">
-                <li>Responda de manera honesta según su conducta habitual.</li>
+              <h3>Instrucciones</h3>
+              <ol class="small">
+                <li>Responda según su conducta habitual, no como le gustaría ser.</li>
                 <li>No hay respuestas correctas o incorrectas.</li>
-                <li>Las respuestas se avanzan automáticamente al seleccionar una opción.</li>
+                <li>Al seleccionar una opción, la prueba avanza automáticamente.</li>
               </ol>
-              <p class="small"><b>Importante:</b> El resultado es orientativo y debe ser interpretado por un profesional.</p>
+              <p class="small">
+                <b>Uso orientativo:</b> La interpretación debe ser realizada por un profesional competente.
+              </p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        if st.button("🚀 Iniciar evaluación", type="primary", use_container_width=True):
-            st.session_state.stage = "test"
-            st.session_state.q_idx = 0
-            st.session_state.respuestas = {item["id"]: None for item in BIS_ITEMS}
-            st.session_state.fecha = None
-            st.experimental_rerun()
+    if st.button("🚀 Iniciar evaluación", type="primary", use_container_width=True):
+        st.session_state.stage = "test"
+        st.session_state.q_idx = 0
+        st.session_state.answers = {q["key"]: None for q in QUESTIONS}
+        st.session_state.fecha = None
+        st.rerun()
 
 def view_test():
     i = st.session_state.q_idx
-    item = BIS_ITEMS[i]
-    total_items = len(BIS_ITEMS)
-    progreso = (i + 1) / total_items
+    q = QUESTIONS[i]
+    dim = q["dim"]
+    progreso = (i + 1) / len(QUESTIONS)
 
-    st.progress(progreso, text=f"Progreso: {i+1}/{total_items}")
+    st.progress(progreso, text=f"Progreso: {i+1}/{len(QUESTIONS)}")
 
     st.markdown(
         f"""
-        <div class="dim-title">
-            Dimensión: {item['subescala']}
+        <div class="card">
+          <div class="dim-title">📋 Pregunta {i+1} de {len(QUESTIONS)}</div>
+          <div class="dim-subtitle">
+            Dimensión: <b>{dim}</b> — {DIMENSIONES[dim]}
+          </div>
+          <p style="font-size:1.05rem; margin-top:0.4rem;"><b>{q['text']}</b></p>
         </div>
-        <p class="dim-desc">
-            {SUBESCALAS[item['subescala']]}
-        </p>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown(f"### {i+1}. {item['texto']}")
+    prev_val = st.session_state.answers.get(q["key"])
+    if prev_val is None:
+        prev_index = 0
+    else:
+        # Buscar índice según valor previo
+        prev_index = [v for v in LIK_MAP.values()].index(prev_val)
 
-    prev_val = st.session_state.respuestas.get(item["id"])
-    prev_idx = None
-    if prev_val is not None:
-        # Buscar índice de la etiqueta correspondiente
-        for j, (label, val) in enumerate(OPCIONES.items()):
-            if val == prev_val:
-                prev_idx = j
-                break
-
-    seleccion = st.radio(
+    st.radio(
         "Selecciona una opción",
-        OPCIONES_LIST,
-        index=prev_idx,
-        key=f"resp_{item['id']}",
+        options=LIK_LABELS,
+        index=prev_index,
+        key=f"resp_{q['key']}",
         horizontal=True,
         label_visibility="collapsed",
+        on_change=on_answer_change,
+        args=(q["key"],),
     )
-
-    # Guardar respuesta y auto-avanzar
-    st.session_state.respuestas[item["id"]] = OPCIONES[seleccion]
-    if seleccion is not None:
-        on_answer_change(item["id"])
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 def view_resultados():
     if st.session_state.fecha is None:
         st.session_state.fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    total, sub_suma, sub_prom = calcular_puntajes()
+    total_raw, dim_raw, dim_norm = compute_scores(st.session_state.answers)
 
     st.markdown(
         f"""
         <div class="card">
-          <h1 style="margin:0 0 4px 0; font-size:clamp(2.1rem,3.4vw,2.9rem); font-weight:900;">
-            📊 Resultados — Escala de Impulsividad (BIS-50 Adaptada)
-          </h1>
-          <p class="small" style="margin:0;">Fecha de aplicación: <b>{st.session_state.fecha}</b></p>
+          <h1 class="dim-title">📊 Resultados — Escala de Impulsividad Adaptada</h1>
+          <p class="small">Fecha de aplicación: <b>{st.session_state.fecha}</b></p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # KPIs básicos
+    # KPIs
     st.markdown("<div class='kpi-grid'>", unsafe_allow_html=True)
     st.markdown(
-        f"<div class='kpi'><div class='label'>Puntaje total (50–200)</div><div class='value'>{total}</div></div>",
+        f"""
+        <div class='kpi'>
+          <div class='kpi-label'>Puntaje total (30–120)</div>
+          <div class='kpi-value'>{total_raw}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
-    for nombre in SUBESCALAS.keys():
+
+    for d in DIM_LIST:
         st.markdown(
-            f"<div class='kpi'><div class='label'>Impulsividad {nombre}</div>"
-            f"<div class='value'>{sub_suma[nombre]} "
-            f"<span class='small'>({sub_prom[nombre]:.2f} promedio)</span></div></div>",
+            f"""
+            <div class='kpi'>
+              <div class='kpi-label'>Impulsividad {d} (normalizada 0–100)</div>
+              <div class='kpi-value'>{dim_norm[d]:.1f}</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
+
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.subheader("Interpretación global (orientativa)")
-    st.write(interpretar_total(total))
+    # Interpretación global
+    st.markdown("### Interpretación global (orientativa)")
+    st.write(interpret_total(total_raw))
 
-    st.markdown("---")
-    st.subheader("Análisis por dimensiones")
-
-    for nombre, desc in SUBESCALAS.items():
-        st.markdown(f"### {nombre}")
-        st.write(desc)
-        st.write(
-            f"- **Puntaje total**: {sub_suma[nombre]} "
-            f" (promedio {sub_prom[nombre]:.2f} en escala 1–4)"
+    # Detalle por dimensión
+    st.markdown("### Análisis por dimensiones")
+    for d in DIM_LIST:
+        lvl, txt = interpret_dim(d, dim_raw[d], dim_norm[d])
+        st.markdown(
+            f"""
+            <div class="result-section">
+              <div class="badge">Impulsividad {d} · {lvl.upper()}</div>
+              <p class="small" style="margin-top:4px;">
+                Puntaje bruto: <b>{dim_raw[d]}</b> · Índice normalizado: <b>{dim_norm[d]:.1f}/100</b>
+              </p>
+              <p class="small">{txt}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-        st.write(interpretar_subescala(nombre, sub_suma[nombre], sub_prom[nombre]))
-        st.markdown("")
 
-    st.markdown("---")
     st.markdown(
         """
         **Aviso importante:**  
-        Esta escala es un instrumento **adaptado** basado en la lógica del BIS-11, pero no reemplaza la
-        versión estandarizada oficial ni constituye diagnóstico clínico por sí sola.
-        Se recomienda interpretación por psicólogo/a o psiquiatra, y uso ético en contextos laborales o clínicos.
+        Esta escala es una adaptación basada en la lógica del BIS-11, con ítems originales.
+        No sustituye la versión estandarizada oficial ni constituye diagnóstico clínico por sí sola.
+        Su uso e interpretación deben ser realizados por profesionales de la salud mental o expertos en evaluación psicológica.
         """
     )
 
-    if st.button("🔄 Nueva evaluación", type="primary", use_container_width=True):
+    if st.button("🔄 Realizar nueva evaluación", type="primary", use_container_width=True):
         st.session_state.stage = "inicio"
         st.session_state.q_idx = 0
-        st.session_state.respuestas = {item["id"]: None for item in BIS_ITEMS}
+        st.session_state.answers = {q["key"]: None for q in QUESTIONS}
         st.session_state.fecha = None
-        st.experimental_rerun()
+        st.rerun()
 
 # ---------------------------------------------------------------
 # Controlador principal
@@ -412,4 +478,4 @@ elif st.session_state.stage == "resultados":
 # Rerun si se marcó desde el callback
 if st.session_state._needs_rerun:
     st.session_state._needs_rerun = False
-    st.experimental_rerun()
+    st.rerun()
